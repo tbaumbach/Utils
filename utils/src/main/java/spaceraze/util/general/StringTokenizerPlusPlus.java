@@ -12,7 +12,7 @@ import java.util.List;
  * Improved version of the StringTokenizer class which can handle empty tokens
  */
 public class StringTokenizerPlusPlus {
-  private List<String> tokens = new ArrayList<String>();
+  private List<String> tokens = new ArrayList<>();
   private int currentToken = 0;
 
   public StringTokenizerPlusPlus(String inData, String delimiter) {
@@ -23,12 +23,7 @@ public class StringTokenizerPlusPlus {
       int currentIndex = 0;
       while (tmpIndex > -1) {
 
-        if (currentIndex != tmpIndex) {
-          tokens.add(inData.substring(currentIndex, tmpIndex));
-        } else {
-          tokens.add("");
-        }
-//        currentIndex = tmpIndex + 1;
+        tokens.add(currentIndex != tmpIndex ? inData.substring(currentIndex, tmpIndex) : "");
         currentIndex = tmpIndex + delimiter.length();
 
         if (currentIndex == inData.length()) {
@@ -36,22 +31,18 @@ public class StringTokenizerPlusPlus {
         } else {
           tmpIndex = inData.substring(currentIndex).indexOf(delimiter);
           if (tmpIndex > -1){
-            tmpIndex = tmpIndex + currentIndex;
+            tmpIndex += currentIndex;
           }
         }
       }
 
-      if (currentIndex == inData.length()) {
-        tokens.add("");
-      } else{
-        tokens.add(inData.substring(currentIndex));
-      }
+      tokens.add(currentIndex == inData.length() ? "" : inData.substring(currentIndex));
     }
   }
 
   public String nextToken() {
     String returnString;
-    returnString = (String) tokens.get(currentToken);
+    returnString = tokens.get(currentToken);
     currentToken++;
     return returnString;
 

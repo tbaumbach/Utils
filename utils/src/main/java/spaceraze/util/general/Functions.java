@@ -10,9 +10,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
 
 
@@ -22,8 +19,6 @@ public class Functions implements Serializable {
 
   /**
    * Returns a value between 1-10, or -1 if n/a
-   * @param cur
-   * @param max
    * @return 1-10, but -1 if not acclicable, for instance a ship without huge ammo returns -1
    */
   public static String getDataValue(int cur, int max){
@@ -48,8 +43,6 @@ public class Functions implements Serializable {
     /**
      * Given a % chance (expressed as an int between 1-100), simulates a d100
      * dice roll and returns seccess or failiure.
-     * @param chance
-     * @return
      */
     public static boolean getD100(int chance){
     	boolean success = false;
@@ -103,19 +96,6 @@ public class Functions implements Serializable {
   	return answer;
   }
 
-
-  public static <E> List<E> cloneList(List<E> copyList){
-	  List<E> newList = null;
-	  if (copyList instanceof LinkedList<?>){
-		  newList = new LinkedList<E>();
-	  }else{
-		  newList = new ArrayList<E>();
-	  }
-	  for (E e : copyList) {
-		  newList.add(e);
-	  }
-	  return newList; 
-  }
   
   /**
    * Returns a copy of the object, or null if the object cannot
@@ -138,11 +118,8 @@ public class Functions implements Serializable {
 		  ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()));
 		  obj = (A)in.readObject();
 	  }
-	  catch(IOException e) {
-		  e.printStackTrace();
-	  }
-	  catch(ClassNotFoundException cnfe) {
-		  cnfe.printStackTrace();
+	  catch(IOException | ClassNotFoundException e) {
+		  Logger.finer(e.getMessage());
 	  }
 	  return obj;
   }
@@ -184,38 +161,20 @@ public class Functions implements Serializable {
 	  if ((aWord != null) && (aWord.length() > 0)){
 		  String firstLetter = aWord.substring(0,1);
 		  firstLetter = firstLetter.toLowerCase();
-		  if (firstLetter.equals("a")){
-			  prefix += "n";
-		  }else
-		  if (firstLetter.equals("e")){
-			  prefix += "n";
-		  }else
-		  if (firstLetter.equals("i")){
-			  prefix += "n";
-		  }else
-		  if (firstLetter.equals("o")){
-			  prefix += "n";
-		  }else
-		  if (firstLetter.equals("u")){
-			  prefix += "n";
-		  }else
-		  if (firstLetter.equals("y")){
-			  prefix += "n";
+		  switch (firstLetter) {
+			  case "a":
+			  case "e":
+			  case "i":
+			  case "o":
+			  case "u":
+			  case "y":
+				  prefix += "n";
+				  break;
+			  default:
+			  	break;
 		  }
 	  }
 	  return prefix;
-  }
-  
-  public static String capitalizeAllFirstLetters(String str){
-	  StringBuilder result = new StringBuilder(str.length());
-	  String[] words = str.split("\\s");
-	  for(int i = 0, l = words.length; i < l; ++i) {
-		  if(i > 0){ 
-			  result.append(" ");
-		  }
-		  result.append(Character.toUpperCase(words[i].charAt(0))).append(words[i].substring(1));
-	  }
-	  return result.toString();
   }
 
 }

@@ -15,9 +15,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
-//import sr.server.PropfileNameFilter;
-//import sr.server.ranking.RankingHandler;
-
 /**
  * @author wmpabod
  *
@@ -26,92 +23,77 @@ import java.util.ResourceBundle;
 public class PropertiesHandler {
 //	private static Properties properties;
 	private static final String DEFAULT_PROPERTIES_NAME = "spaceraze";
+	private static final String BASEPATH = "basepath";
+
+	private PropertiesHandler(){}
 	
 	public static String getProperty(String key){
 //		System.out.println("getProperty: key = " + key);
-		String retVal = "";
 		Properties properties = PropertiesHandler.getInstance();
 		String tmpValue = properties.getProperty(key);
 		if (tmpValue != null){
-			retVal = tmpValue;
+			return tmpValue;
 		}else{
-			retVal = "";
+			return "";
 		}
-		return retVal;
 	}
 	
 	/**
 	 * Used by Map.class
-	 * @param propName example "map.wigge3" to load "map.wigge3.properties"
-	 * @return
+	 * @param propFilePrefixName example "map.wigge3" to load "map.wigge3.properties"
 	 */
 	public static Properties getInstance(String propFilePrefixName){
 //		System.out.println("getInstance: propFilePrefixName = " + propFilePrefixName);
-		Properties properties = PropertiesReader.getProperties(propFilePrefixName, false);
-		return properties;
+		return PropertiesReader.getProperties(propFilePrefixName, false);
 	}
 
 	/**
 	 * This method always fetches the Properties objects data from loadCashedParams, 
 	 * since the data sought after never change during runtime.
-	 * @return
 	 */
 	private static Properties getInstance(){
-		Properties properties = null;
-		try {
-			properties = loadCashedParams(DEFAULT_PROPERTIES_NAME);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return properties;
+		return loadCashedParams(DEFAULT_PROPERTIES_NAME);
 	}
 	
 
 	// used by other classes
-	public static Properties loadParams(String file) throws IOException {
+	public static Properties loadParams(String file) {
 		return PropertiesReader.getProperties(file, true);
 	}
 	
 	
 	/**
 	 * Loads properties through ResourceBundle, which cashes data
-	 * @param file
-	 * @return
-	 * @throws IOException
 	 */
-	private static Properties loadCashedParams(String file) throws IOException {
+	private static Properties loadCashedParams(String file) {
 		// Loads a ResourceBundle and creates Properties from it
 		Properties prop = new Properties();
 		ResourceBundle bundle = ResourceBundle.getBundle(file);
 		Enumeration<String> tmpenum = bundle.getKeys();
 
-		String key = null;
 		while (tmpenum.hasMoreElements()) {
-			key = tmpenum.nextElement();
 //			System.out.println("Reading from bundle: " + key + " = " + (String)bundle.getObject(key));
+			String key = tmpenum.nextElement();
 			prop.put(key, bundle.getObject(key));
 		}
 
 		return prop;
 	}
 
-	/*
-	public String getPropertyFiles(){
+
+	public static String getPropertyFiles(){
 		String props = "";
 		// get path
-		String basePath = PropertiesHandler.getProperty("basepath");
+		String basePath = PropertiesHandler.getProperty(PropertiesHandler.BASEPATH);
 		String propPath = basePath + "WEB-INF\\classes";
 		props = getProps(propPath);
 		return props;
-	}*/
+	}
 
 	/**
 	 * Return a string containing html links to all properties files
-	 * @param folderPath
-	 * @return
 	 */
-	/* TODO försök få till en bra loggningslösning
-	private String getProps(String folderPath){
+	private static String getProps(String folderPath){
 //		System.out.println("PropertiesHandler.getProps: folderPath=" + folderPath);
 		String props = "";
 		File propFolder = new File(folderPath);
@@ -121,12 +103,12 @@ public class PropertiesHandler {
 			props = props + "<a href=view_props.jsp?propname=" + file.getName() + ">" + file.getName() + "</a><br>\n";
 		}
 		return props;
-	}*/
+	}
 	
 	public static String getPropertiesContent(String filename){
 //		System.out.println("getPropertiesContent: filename = " + filename);
 		String contents = "";
-		String basePath = PropertiesHandler.getProperty("basepath");
+		String basePath = PropertiesHandler.getProperty(PropertiesHandler.BASEPATH);
 		String completePath = basePath + "WEB-INF\\classes\\" + filename;
 		File logFile = new File(completePath);
 		List<String> fileContents = readFile(logFile);
@@ -138,13 +120,11 @@ public class PropertiesHandler {
 
 	/**
 	 * Used for editing contents in a properties file
-	 * @param filename
-	 * @return
 	 */
 	public static String getPropertiesContent2(String filename){
 //		System.out.println("getPropertiesContent2: filename = " + filename);
 		String contents = "";
-		String basePath = PropertiesHandler.getProperty("basepath");
+		String basePath = PropertiesHandler.getProperty(PropertiesHandler.BASEPATH);
 		String completePath = basePath + "WEB-INF\\classes\\" + filename;
 		File logFile = new File(completePath);
 		List<String> fileContents = readFile(logFile);
@@ -155,9 +135,9 @@ public class PropertiesHandler {
 	}
 
 	private static List<String> readFile(File aFile){
-		List<String> list = new LinkedList<String>();
-		try{
-			FileReader fr = new FileReader(aFile);
+		List<String> list = new LinkedList<>();
+		try(FileReader fr = new FileReader(aFile)){
+
 			BufferedReader br = new BufferedReader(fr);
 			String aRow = br.readLine();
 			while (aRow != null){
@@ -172,19 +152,17 @@ public class PropertiesHandler {
 	}
 
 	public static void saveFile(String fileName, String newContent){
-		String basePath = PropertiesHandler.getProperty("basepath");
+		String basePath = PropertiesHandler.getProperty(PropertiesHandler.BASEPATH);
 		String completePath = basePath + "WEB-INF\\classes\\" + fileName;
 		File propFile = new File(completePath);		
 		writeFile(propFile, newContent);
 		if (fileName.equals("ranking.properties")){
-			//TODO ska vi ha detta?
-			//	RankingHandler.reloadList();
+			RankingHandler.reloadList();
 		}
 	}
 
 	private static void writeFile(File aFile, String newContent){
-		try{
-			FileWriter fw = new FileWriter(aFile);
+		try(FileWriter fw = new FileWriter(aFile)){
 			PrintWriter pw = new PrintWriter(fw);
 //			StringTokenizer st = new StringTokenizer(newContent,"\n");
 //			while(st.hasMoreTokens()){

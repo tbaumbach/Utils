@@ -23,6 +23,8 @@ import java.util.ResourceBundle;
 public class PropertiesReader{
 	private static String basePath;
 	private static String dataPath;
+
+	private PropertiesReader(){}
 	
 	public static Properties getProperties(String propFileName, boolean isStaticData) {
 //		System.out.println("PropertiesReader.getProperties called, propFileName: " + propFileName);
@@ -30,8 +32,7 @@ public class PropertiesReader{
 		// create the correct file path to the file
 		String exactPath = getExactPath(null,propFileName + ".properties", isStaticData);
 		// read the file
-		Properties prop = loadFile(exactPath);
-		return prop;
+		return loadFile(exactPath);
 	}
 	
 	public static String getExactPath(String folderPath, String propFileName, boolean isStaticData){
@@ -48,12 +49,12 @@ public class PropertiesReader{
 			int index = propFileName.indexOf(".");
 			if (index != -1){
 				String firstPart = propFileName.substring(0,index);
-				String lastPart = propFileName.substring(index + 1,propFileName.length());
+				String lastPart = propFileName.substring(index + 1);
 				if (lastPart.equalsIgnoreCase("properties")){
 					completePath = null;
 				}else{
 					// recursve call with first part of propFileName moved to folderPath
-					String tmpFolderPath = null;
+					String tmpFolderPath;
 					if (folderPath == null){
 						tmpFolderPath = firstPart;
 					}else{
@@ -73,7 +74,7 @@ public class PropertiesReader{
 			final String DEFAULT_PROPERTIES_NAME = "spaceraze";
 			ResourceBundle bundle = ResourceBundle.getBundle(DEFAULT_PROPERTIES_NAME);
 			Enumeration<String> tmpenum = bundle.getKeys();
-			String key = null;
+			String key;
 			while (tmpenum.hasMoreElements()) {
 				key = tmpenum.nextElement();
 				if (key.equals("basepath")){
@@ -90,8 +91,7 @@ public class PropertiesReader{
 	private static Properties loadFile(String aFileName){
 //		System.out.println("loadFile, aFileName: " + aFileName);
 		Properties prop = new Properties();
-		try{
-			FileReader fr = new FileReader(aFileName);
+		try(FileReader fr = new FileReader(aFileName)){
 			BufferedReader br = new BufferedReader(fr);
 			String aLine = br.readLine();
 			while (aLine != null){
@@ -116,17 +116,7 @@ public class PropertiesReader{
 	}
 	
 	private static boolean isKeyValueRow(String aLine){
-		boolean ok = true;
-		if (aLine == null){
-			ok = false;
-		}else
-		if (aLine.startsWith("#")){
-			ok = false;
-		}else
-		if (aLine.indexOf("=") == -1){
-			ok = false;
-		}
-		return ok;
+		return !(aLine == null || aLine.startsWith("#") || !aLine.contains("="));
 	}
 
 	private static String getKey(String aLine){
@@ -138,7 +128,7 @@ public class PropertiesReader{
 	
 	private static String getValue(String aLine){
 		int indexEqualSign = aLine.indexOf("=");
-		String valuePart = aLine.substring(indexEqualSign + 1,aLine.length());
+		String valuePart = aLine.substring(indexEqualSign + 1);
 		valuePart = valuePart.trim();
 		return valuePart;
 	}

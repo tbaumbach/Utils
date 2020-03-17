@@ -5,11 +5,9 @@ package spaceraze.util.general;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.MissingResourceException;
+import java.util.*;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import spaceraze.util.properties.PropertiesHandler;
 
@@ -30,6 +28,8 @@ public class Logger {
 	private static Level logLevel;
 	private static boolean doOutput = true;
 	private static String basePath; // inlagd för att fixa skum bugg, borde egentligen inte behövas...
+
+	private Logger(){}
 
 	public static void setLogLevel(String newLevelString){
 		System.out.println("Logger.setLogLevel(" + newLevelString + ")");
@@ -104,7 +104,7 @@ public class Logger {
 			int stackSize = traces.length;
 			int counter = 2; // skip the first two traces since they must be the Thread.getStackTrace and one log call
 			StackTraceElement foundStackTrace = null;
-			while ((foundStackTrace == null) & (counter < stackSize)){
+			while (foundStackTrace == null && counter < stackSize){
 				StackTraceElement element = traces[counter];
 //				System.out.println("stacktrace: " + element.getClass().getCanonicalName());
 				String className = element.getClassName().substring(element.getClassName().lastIndexOf(".")+1); 
@@ -115,7 +115,7 @@ public class Logger {
 					counter++;
 				}
 			}
-			String callingClass = foundStackTrace.getClassName().substring(foundStackTrace.getClassName().lastIndexOf(".")+1); 
+			String callingClass = foundStackTrace.getClassName().substring(foundStackTrace.getClassName().lastIndexOf(".")+1);
 			String callingMethod = foundStackTrace.getMethodName();
 			String line = String.valueOf(foundStackTrace.getLineNumber());
 			Date aDate = new Date();
@@ -139,7 +139,7 @@ public class Logger {
 	}
 	
 	private static String padWithBlanks(String original, int length){
-		String retVal = null;
+		String retVal;
 		if (original.length() > length){
 			retVal = original;
 		}else{
@@ -160,20 +160,20 @@ public class Logger {
 
 	public static String getLogFilesString(){
 		List<String> allLogs = getAllLogFiles();
-		String logsStr = "";
-		if (allLogs.size() == 0){
-			logsStr = "No log files found...";
+
+		if (allLogs.isEmpty()){
+			return "No log files found...";
 		}else{
+			String logsStr = "";
 			for (String fileName : allLogs){
 				logsStr = logsStr + "<a href=\"view_log.jsp?logname=" + fileName + "\">" + fileName + "</a><br>";
 			}
+			return logsStr;
 		}
-		return logsStr;
 	}
 	
 	/**
 	 * Returns a list of all log file names in the tomcat logs folder
-	 * @return
 	 */
 	private static List<String> getAllLogFiles(){
 		if (basePath == null){
@@ -182,20 +182,19 @@ public class Logger {
 		Logger.finer("basePath: " + basePath);
 		String completePath = basePath + "..\\..\\logs\\";
 		Logger.finest("LoggingHandler.getAllLogFiles: folderPath=" + completePath);
-		List<String> allLogFileNames = new LinkedList<String>();
+		//List<String> allLogFileNames = new ArrayList<>();
 		File propFolder = new File(completePath);
 		if (propFolder.exists()){
-			File[] propFiles = propFolder.listFiles(); 
-			for (int i = 0; i < propFiles.length; i++) {
-				File file = propFiles[i];
-				if (!file.isDirectory()){
-					String mapName = file.getName();
-					allLogFileNames.add(mapName);
-				}
+			File[] files = propFolder.listFiles();
+			if(files != null) {
+				return Arrays.stream(files)
+						.filter(File::isFile)
+						.map(File::getName)
+						.collect(Collectors.toList());
 			}
 		}
 
-		return allLogFileNames;
+		return new ArrayList<>();
 	}
 	
 }
